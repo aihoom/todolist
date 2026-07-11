@@ -12,9 +12,10 @@ import {
   ErrorBanner,
   Field,
   Input,
-  Textarea,
 } from "./ui";
 import { GroupManager, type GroupFilter } from "./group-manager";
+import { MarkdownContent } from "./markdown-content";
+import { MarkdownNoteField } from "./markdown-note-field";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleString("zh-CN", {
@@ -320,9 +321,10 @@ export function PersonalClient({
                             </span>
                           ) : null}
                           {todo.description ? (
-                            <p className="mt-1 whitespace-pre-wrap text-sm text-muted">
-                              {todo.description}
-                            </p>
+                            <MarkdownContent
+                              source={todo.description}
+                              className="mt-2 text-sm text-muted"
+                            />
                           ) : null}
                           {due ? (
                             <div
@@ -446,11 +448,18 @@ export function PersonalClient({
                   onChange={(e) => setDueAt(e.target.value)}
                 />
               </Field>
-              <Field label="备注（可选）">
-                <Textarea
+              <Field
+                label="备注（可选）"
+                hint="支持 Markdown；可上传截图插入正文"
+              >
+                <MarkdownNoteField
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
+                  onChange={setDescription}
+                  placeholder={
+                    "补充说明、清单、截图…\n\n- [ ] 示例\n\n点工具栏「插入图片」可贴截图"
+                  }
+                  rows={6}
+                  disabled={adding}
                 />
               </Field>
               <Button type="submit" className="w-full" disabled={adding}>

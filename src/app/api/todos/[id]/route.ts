@@ -16,7 +16,12 @@ type Params = { params: Promise<{ id: string }> };
 
 const updateSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
-  description: z.string().trim().max(1000).nullable().optional(),
+  description: z
+    .string()
+    .trim()
+    .max(20000, "备注太长了（支持 Markdown，上限约 2 万字）")
+    .nullable()
+    .optional(),
   completed: z.boolean().optional(),
   dueAt: z.string().nullable().optional(),
   groupId: z.string().nullable().optional(),

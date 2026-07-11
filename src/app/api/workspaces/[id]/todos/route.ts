@@ -18,7 +18,7 @@ const createSchema = z.object({
   description: z
     .string()
     .trim()
-    .max(1000, "描述太长了")
+    .max(20000, "备注太长了（支持 Markdown，上限约 2 万字）")
     .optional()
     .or(z.literal("")),
   dueAt: z.string().optional().nullable(),

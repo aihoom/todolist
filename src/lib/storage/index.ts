@@ -43,11 +43,10 @@ export function getStorageDriverName(): StorageDriverName {
   return name === "r2" ? "r2" : "local";
 }
 
+export type UploadFolder = "avatars" | "backgrounds" | "branding" | "notes";
+
 /** 生成带用户/类型前缀的对象键 */
-export function buildObjectKey(
-  folder: "avatars" | "backgrounds" | "branding",
-  filename: string
-) {
+export function buildObjectKey(folder: UploadFolder, filename: string) {
   // 去掉路径穿越
   const safe = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `${folder}/${safe}`;

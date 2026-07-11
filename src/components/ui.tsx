@@ -1,9 +1,4 @@
-import type {
-  ReactNode,
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  TextareaHTMLAttributes,
-} from "react";
+import { forwardRef, type ReactNode, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 export function Card({
   children,
@@ -34,17 +29,18 @@ export function Input({
   return <input className={`input ${className}`} {...props} />;
 }
 
-export function Textarea({
-  className = "",
-  ...props
-}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export const Textarea = forwardRef<
+  HTMLTextAreaElement,
+  TextareaHTMLAttributes<HTMLTextAreaElement>
+>(function Textarea({ className = "", ...props }, ref) {
   return (
     <textarea
+      ref={ref}
       className={`input min-h-[88px] resize-y ${className}`}
       {...props}
     />
   );
-}
+});
 
 export function Field({
   label,

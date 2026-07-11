@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-mkdir -p /data/uploads/avatars /data/uploads/backgrounds /data/uploads/branding
+mkdir -p /data/uploads/avatars /data/uploads/backgrounds /data/uploads/branding /data/uploads/notes
 # 上传持久化：统一写 /data/uploads，由 /uploads/* 路由提供（不依赖 Next 启动时扫描 public/）
 export UPLOAD_DIR="${UPLOAD_DIR:-/data/uploads}"
 # 兼容旧静态路径 / 外部直接读 public/uploads 的部署

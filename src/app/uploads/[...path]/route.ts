@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
  * 必须用 Route Handler 从磁盘读。
  */
 
-const ALLOWED_TOP = new Set(["avatars", "backgrounds", "branding"]);
+const ALLOWED_TOP = new Set(["avatars", "backgrounds", "branding", "notes"]);
 
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
