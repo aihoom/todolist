@@ -6,6 +6,7 @@ import {
   extFromMime,
   getStorage,
 } from "@/lib/storage";
+import { getFormFile } from "@/lib/upload-form";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -14,26 +15,26 @@ export async function POST(request: Request) {
   try {
     const user = await requireUser();
     const form = await request.formData();
-    const file = form.get("avatar");
+    const uploaded = getFormFile(form, "avatar");
 
-    if (!file || !(file instanceof File)) {
+    if (!uploaded) {
       return jsonError("请选择头像图片", 400);
     }
-    if (!ALLOWED.has(file.type)) {
+    if (!ALLOWED.has(uploaded.type)) {
       return jsonError("仅支持 JPG / PNG / WebP / GIF", 400);
     }
-    if (file.size > MAX_BYTES) {
+    if (uploaded.size > MAX_BYTES) {
       return jsonError("头像不能超过 2MB", 400);
     }
 
-    const ext = extFromMime(file.type);
+    const ext = extFromMime(uploaded.type);
     const key = buildObjectKey("avatars", `${user.id}.${ext}`);
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = Buffer.from(await uploaded.file.arrayBuffer());
     const storage = getStorage();
     const { url } = await storage.put({
       key,
       body: buffer,
-      contentType: file.type,
+      contentType: uploaded.type,
     });
 
     const updated = await prisma.user.update({

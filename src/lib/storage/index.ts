@@ -9,7 +9,7 @@ let cached: StorageDriver | null = null;
 
 /**
  * 根据 STORAGE_DRIVER 选择驱动：
- * - local（默认）：本机 public/uploads，常规 VPS / Docker
+ * - local（默认）：本机 public/uploads 或 UPLOAD_DIR，经 /uploads 路由提供
  * - r2：Cloudflare R2（S3 API，Node 环境）
  *
  * Workers 环境请直接用 createR2BindingStorage(env.BUCKET, publicUrl)

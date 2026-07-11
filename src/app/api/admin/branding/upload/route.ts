@@ -7,6 +7,7 @@ import {
   extFromMime,
   getStorage,
 } from "@/lib/storage";
+import { getFormFile } from "@/lib/upload-form";
 
 const MAX = 2 * 1024 * 1024;
 const ALLOWED = new Set([
@@ -23,25 +24,25 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     const form = await request.formData();
     const kind = String(form.get("kind") || "");
-    const file = form.get("file");
+    const uploaded = getFormFile(form, "file");
     if (kind !== "logo" && kind !== "favicon") {
       return jsonError("kind 必须是 logo 或 favicon", 400);
     }
-    if (!file || !(file instanceof File)) {
+    if (!uploaded) {
       return jsonError("请选择文件", 400);
     }
-    if (!ALLOWED.has(file.type) && kind === "logo") {
+    if (!ALLOWED.has(uploaded.type) && kind === "logo") {
       return jsonError("Logo 仅支持常见图片格式", 400);
     }
-    if (file.size > MAX) return jsonError("文件不能超过 2MB", 400);
+    if (uploaded.size > MAX) return jsonError("文件不能超过 2MB", 400);
 
-    const ext = extFromMime(file.type);
+    const ext = extFromMime(uploaded.type);
     const key = buildObjectKey("branding", `${kind}.${ext}`);
     const storage = getStorage();
     const { url } = await storage.put({
       key,
-      body: Buffer.from(await file.arrayBuffer()),
-      contentType: file.type || "application/octet-stream",
+      body: Buffer.from(await uploaded.file.arrayBuffer()),
+      contentType: uploaded.type || "application/octet-stream",
     });
 
     await getSiteSettings();

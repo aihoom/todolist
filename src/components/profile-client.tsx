@@ -182,10 +182,19 @@ export function ProfileClient({
       const res = await fetch("/api/profile/avatar", {
         method: "POST",
         body: form,
+        credentials: "same-origin",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "上传失败");
-      setUser((u) => ({ ...u, avatarUrl: data.user.avatarUrl }));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : `上传失败（HTTP ${res.status}）`
+        );
+      }
+      const nextUrl = data.user?.avatarUrl as string | undefined;
+      if (!nextUrl) throw new Error("上传成功但未返回头像地址");
+      setUser((u) => ({ ...u, avatarUrl: nextUrl }));
       setSuccess("头像已更新");
       router.refresh();
     } catch (err) {
@@ -207,12 +216,20 @@ export function ProfileClient({
       const res = await fetch("/api/profile/background", {
         method: "POST",
         body: form,
+        credentials: "same-origin",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "上传失败");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : `上传失败（HTTP ${res.status}）`
+        );
+      }
+      if (!data.user) throw new Error("上传成功但未返回用户信息");
       setUser(data.user);
       setBgUrl(data.user.backgroundImageUrl ?? "");
-      setSuccess("背景图已上传，刷新后生效");
+      setSuccess("背景图已上传，即将刷新页面…");
       setTimeout(() => window.location.reload(), 400);
     } catch (err) {
       setError(err instanceof Error ? err.message : "上传失败");

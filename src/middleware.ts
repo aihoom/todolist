@@ -27,7 +27,8 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/t/") ||
     request.nextUrl.pathname.startsWith("/api/") ||
     request.nextUrl.pathname.startsWith("/_next/") ||
-    request.nextUrl.pathname.startsWith("/uploads/")
+    // 用户上传资源由 app/uploads 路由提供，勿 rewrite 到自定义域名映射
+    request.nextUrl.pathname.startsWith("/uploads")
   ) {
     return NextResponse.next();
   }

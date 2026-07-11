@@ -18,9 +18,16 @@
 
 ```bash
 STORAGE_DRIVER=local   # 或不写，默认 local
+# 可选：自定义落盘目录（Docker 入口默认 /data/uploads）
+# UPLOAD_DIR=/var/lib/todoplan/uploads
 ```
 
-文件仍在 `public/uploads/...`，Docker 可挂 volume 到 `/data/uploads`。
+文件默认写在 `public/uploads/...`（或 `UPLOAD_DIR`）。  
+**访问路径仍是** `/uploads/avatars/...`，由 `src/app/uploads/[...path]/route.ts` **动态读取磁盘**。
+
+> 重要：Next.js 生产模式只在**进程启动时**扫描 `public/` 静态文件表。  
+> 运行时新上传的图片若只依赖静态托管会 **404**（看起来像「上传没反应」）。  
+> 当前实现已用 Route Handler 规避；Docker 请挂 volume 到 `/data/uploads` 并保证可写。
 
 ---
 

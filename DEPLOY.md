@@ -325,6 +325,13 @@ A: 多半是 **会话 Cookie 的 Secure 标志** 与访问协议不一致。
 - 也可显式设置：`COOKIE_SECURE=false`（HTTP）或 `COOKIE_SECURE=true`（强制 HTTPS Cookie）。
 - 浏览器开发者工具 → Application/存储 → Cookies：登录后应出现 `todoplan_session`（用户）或 `todoplan_admin_session`（管理后台）。若没有，就是 Cookie 被拒收。
 
+**Q: 头像 / 背景图上传后没反应，或显示裂图？**  
+A: 常见有两类：
+
+1. **旧版本静态托管问题**（已修复）：Next.js 生产环境不会自动托管「启动后」写入 `public/uploads` 的新文件。请更新到含 `/uploads/*` 动态路由的版本并重新 `build` + 重启。  
+2. **磁盘不可写 / 路径不对**：Docker 需挂载 `todoplan_uploads:/data/uploads`；裸机确保进程对 `public/uploads` 或 `UPLOAD_DIR` 可写。上传后浏览器直接打开返回的 `/uploads/avatars/xxx.jpg` 应能看到图；若 404 看容器日志与目录权限。  
+3. 前置 Nginx 时注意 `client_max_body_size`（建议 ≥ 6m）。
+
 **Q: 内存只有 512MB 能跑吗？**  
 A: 可以。构建建议在本地/CI 做好镜像再上传；或在机器上 `NODE_OPTIONS=--max-old-space-size=400`。
 
