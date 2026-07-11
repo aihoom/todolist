@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "./prisma";
-import { AuthError } from "./auth";
+import { AuthError, sessionCookieSecure } from "./auth";
 
 const COOKIE = "todoplan_admin_session";
 const DAYS = 7;
@@ -34,7 +34,7 @@ export async function createAdminSession(user: AdminSession) {
   const store = await cookies();
   store.set(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: sessionCookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: DAYS * 24 * 60 * 60,

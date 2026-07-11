@@ -317,6 +317,14 @@ pm2 startup
 
 ## 11. 常见问题
 
+**Q: 注册/登录成功，页面刷新后仍停在登录页，进不了后台或 Dashboard？**  
+A: 多半是 **会话 Cookie 的 Secure 标志** 与访问协议不一致。
+
+- 生产环境若 `APP_URL=https://...`，Cookie 会带 `Secure`，**必须用 HTTPS** 访问（Cloudflare Tunnel / Caddy / Nginx 均可）。
+- 若暂时只用 `http://服务器IP:3000` 访问，请把 `APP_URL` 设为 `http://服务器IP:3000`（不要写 https），然后重启进程。
+- 也可显式设置：`COOKIE_SECURE=false`（HTTP）或 `COOKIE_SECURE=true`（强制 HTTPS Cookie）。
+- 浏览器开发者工具 → Application/存储 → Cookies：登录后应出现 `todoplan_session`（用户）或 `todoplan_admin_session`（管理后台）。若没有，就是 Cookie 被拒收。
+
 **Q: 内存只有 512MB 能跑吗？**  
 A: 可以。构建建议在本地/CI 做好镜像再上传；或在机器上 `NODE_OPTIONS=--max-old-space-size=400`。
 

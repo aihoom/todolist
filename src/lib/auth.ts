@@ -14,6 +14,27 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
+/**
+ * 会话 Cookie 是否加 Secure。
+ * 不能仅靠 NODE_ENV===production：VPS 上用 http://IP:3000 访问时，
+ * Secure cookie 会被浏览器直接丢弃，表现为「登录成功却仍停在登录页」。
+ *
+ * 优先级：COOKIE_SECURE 显式覆盖 → APP_URL 协议 → 默认 false（兼容 HTTP）
+ */
+export function sessionCookieSecure(): boolean {
+  const explicit = process.env.COOKIE_SECURE?.trim().toLowerCase();
+  if (explicit === "1" || explicit === "true" || explicit === "yes") {
+    return true;
+  }
+  if (explicit === "0" || explicit === "false" || explicit === "no") {
+    return false;
+  }
+  const appUrl = process.env.APP_URL ?? "";
+  if (appUrl.startsWith("https://")) return true;
+  if (appUrl.startsWith("http://")) return false;
+  return false;
+}
+
 export type SessionUser = {
   id: string;
   email: string;
@@ -50,7 +71,7 @@ export async function createSession(user: {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: sessionCookieSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
