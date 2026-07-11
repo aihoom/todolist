@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: todoplan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: todoplan
+      POSTGRES_PASSWORD: todoplan
+      POSTGRES_DB: todoplan
+    ports:
+      - "5432:5432"
+    volumes:
+      - todoplan_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U todoplan -d todoplan"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 可选：应用容器（需先有 .env.production）
+  # app:
+  #   build: .
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env.production
+  #   environment:
+  #     DATABASE_URL: postgresql://todoplan:todoplan@db:5432/todoplan
+  #     SEED_ADMIN: "1"
+  #   volumes:
+  #     - todoplan_uploads:/data/uploads
+
+volumes:
+  todoplan_pg:

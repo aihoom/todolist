@@ -1,0 +1,216 @@
+// Shared TodoPlan - multi-user workspaces + admin / domain skeleton
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  /// user | admin
+  role         String   @default("user")
+  /// active | disabled
+  status       String   @default("active")
+  avatarUrl    String?
+  bio          String?
+  serverChanKey String?
+  notifyOnTodoCreate   Boolean @default(true)
+  notifyOnTodoComplete Boolean @default(true)
+  notifyOnDueSoon      Boolean @default(true)
+  backgroundImageUrl String?
+  backgroundOverlay  Int     @default(70)
+  customCss  String?
+  customHtml String?
+  /// 自定义域名根路径落地的默认工作区
+  defaultWorkspaceId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  defaultWorkspace  Workspace?        @relation("UserDefaultWorkspace", fields: [defaultWorkspaceId], references: [id], onDelete: SetNull)
+  memberships       WorkspaceMember[]
+  ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
+  todos             Todo[]
+  pushSubscriptions PushSubscription[]
+  todoGroups        TodoGroup[]
+  customDomains     CustomDomain[]
+  platformSubdomains PlatformSubdomain[]
+  inviteLinksCreated InviteLink[]
+  auditLogs         AdminAuditLog[]
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  /// 全站唯一路径后缀：主站 /w/{slug} 与自定义域 /{slug} 共用
+  slug        String   @unique
+  inviteCode  String   @unique
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner              User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members            WorkspaceMember[]
+  todos              Todo[]
+  groups             TodoGroup[]
+  defaultForUsers    User[]            @relation("UserDefaultWorkspace")
+  platformSubdomains PlatformSubdomain[]
+
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("member")
+  joinedAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+model TodoGroup {
+  id          String   @id @default(cuid())
+  name        String
+  workspaceId String?
+  ownerId     String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  todos     Todo[]
+
+  @@index([workspaceId])
+  @@index([ownerId, workspaceId])
+}
+
+model Todo {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  dueAt       DateTime?
+  dueNotified Boolean   @default(false)
+  workspaceId String?
+  groupId     String?
+  createdById String
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  group     TodoGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById, workspaceId])
+  @@index([groupId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// 用户自定义域名（归属账号）
+model CustomDomain {
+  id           String    @id @default(cuid())
+  userId       String
+  /// 小写主机名，如 plan.3o.pw
+  domain       String    @unique
+  /// pending | active | failed
+  status       String    @default("pending")
+  /// 用户需配置的 DNS 验证令牌
+  verifyToken  String
+  lastCheckedAt DateTime?
+  lastError    String?
+  verifiedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+/// 预留：平台二级域名分发（如 aihoom.todo.3o.pw）
+model PlatformSubdomain {
+  id          String   @id @default(cuid())
+  userId      String?
+  workspaceId String?
+  /// 前缀标签
+  label       String
+  fullHost    String   @unique
+  /// pending | active | released
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([label])
+}
+
+/// 运营邀请链接（非强制注册）
+model InviteLink {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  note        String?
+  maxUses     Int?
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  active      Boolean   @default(true)
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+}
+
+/// 站点品牌与平台配置（单例 id=default）
+model SiteSettings {
+  id                   String   @id @default("default")
+  siteName             String   @default("TodoPlan")
+  logoUrl              String?
+  faviconUrl           String?
+  loginTagline         String?
+  /// 用户 CNAME 应指向的目标，如 cname.todoplan.app
+  platformCnameTarget  String?
+  /// 平台二级域后缀，如 todo.3o.pw（分发接口用）
+  platformSubdomainRoot String?
+  registrationOpen     Boolean  @default(true)
+  maintenanceMessage   String?
+  updatedAt            DateTime @updatedAt
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String?
+  targetId   String?
+  meta       String?
+  createdAt  DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
