@@ -820,6 +820,14 @@ export function WorkspaceClient({
                           >
                             截止
                           </Button>
+                          {todo.dueAt && !todo.completed ? (
+                            <a
+                              href={`/api/calendar/todos/${todo.id}`}
+                              className="rounded-lg px-2 py-1 text-center text-xs font-medium text-muted transition hover:bg-stone-100 hover:text-stone-800"
+                            >
+                              加入日历
+                            </a>
+                          ) : null}
                           <Button
                             type="button"
                             variant="ghost"

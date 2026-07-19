@@ -3,9 +3,20 @@ import { getSessionUser } from "@/lib/auth";
 import { AuthForm } from "@/components/auth-form";
 import { getSiteSettings } from "@/lib/site-settings";
 
-export default async function LoginPage() {
+type Props = {
+  searchParams: Promise<{ next?: string }>;
+};
+
+function safeNextPath(next?: string): string | undefined {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return undefined;
+  return next;
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const next = safeNextPath(params.next);
   const user = await getSessionUser();
-  if (user) redirect("/dashboard");
+  if (user) redirect(next || "/dashboard");
   const settings = await getSiteSettings();
 
   return (
@@ -14,6 +25,7 @@ export default async function LoginPage() {
         mode="login"
         siteName={settings.siteName}
         tagline={settings.loginTagline}
+        nextPath={next}
       />
     </main>
   );

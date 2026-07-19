@@ -8,16 +8,26 @@ import { Button, Card, ErrorBanner, Field, Input } from "./ui";
 
 type Mode = "login" | "register";
 
+function safeNextPath(next?: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/dashboard";
+  }
+  return next;
+}
+
 export function AuthForm({
   mode,
   inviteCode,
   siteName = "TodoPlan",
   tagline,
+  nextPath,
 }: {
   mode: Mode;
   inviteCode?: string;
   siteName?: string;
   tagline?: string | null;
+  /** 登录成功后跳转（仅允许站内相对路径） */
+  nextPath?: string | null;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -47,7 +57,7 @@ export function AuthForm({
           json: { email, password },
         });
       }
-      router.push("/dashboard");
+      router.push(safeNextPath(nextPath));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "操作失败");

@@ -10,9 +10,22 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${settings.siteName} · 共享计划工作区`,
     description:
       settings.loginTagline || "和伴侣、家人、朋友一起共享待办与工作计划",
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      title: settings.siteName,
+      statusBarStyle: "default",
+    },
     icons: settings.faviconUrl
-      ? [{ url: settings.faviconUrl }]
-      : undefined,
+      ? [
+          { url: settings.faviconUrl },
+          { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        ]
+      : [
+          { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+          { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+          { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        ],
   };
 }
 

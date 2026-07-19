@@ -17,6 +17,8 @@ import {
   Textarea,
 } from "./ui";
 import { ProfileDomainSection } from "./profile-domain-section";
+import { CalendarSettingsCard } from "./calendar-settings-card";
+import { IosHomeCard } from "./ios-home-card";
 
 const BG_PRESETS = [
   {
@@ -384,6 +386,10 @@ export function ProfileClient({
         defaultWorkspaceId={defaultWorkspaceId}
         platformCnameTarget={platformCnameTarget}
       />
+
+      <CalendarSettingsCard />
+
+      <IosHomeCard />
 
       {/* 界面美化 */}
       <Card className="mb-6 p-5">

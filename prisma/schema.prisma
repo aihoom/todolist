@@ -30,6 +30,12 @@ model User {
   customHtml String?
   /// 自定义域名根路径落地的默认工作区
   defaultWorkspaceId String?
+  /// ICS 日历订阅令牌（null 表示未启用）
+  calendarFeedToken        String?  @unique
+  calendarIncludePersonal  Boolean  @default(true)
+  /// JSON 数组：允许导出到日历的 workspaceId
+  calendarWorkspaceIds     String   @default("[]")
+  calendarIncludeCompleted Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
